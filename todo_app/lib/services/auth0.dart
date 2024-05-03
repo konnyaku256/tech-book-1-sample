@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
+import 'package:todo_app/library/secure_storage.dart';
 
 const FlutterAppAuth appAuth = FlutterAppAuth();
 
@@ -33,4 +34,23 @@ Future<TokenResponse?> tokenRequest(String? storedRefreshToken) async {
     issuer: auth0Issuer,
     refreshToken: storedRefreshToken,
   ));
+}
+
+Future<String?> getIdToken() async {
+  final storedRefreshToken = await read(ssRefreshToken);
+  if (storedRefreshToken == null) return '';
+
+  final idToken = await read(ssIdToken);
+  if (idToken!.isNotEmpty) {
+    return idToken;
+  }
+
+  final response = await tokenRequest(storedRefreshToken);
+  write(ssIdToken, response?.idToken);
+  return response?.idToken;
+}
+
+Future<String?> makeAuthorizationHeader() async {
+  final idToken = await getIdToken();
+  return 'Bearer $idToken';
 }

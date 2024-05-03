@@ -1,0 +1,6 @@
+query GetTodos($user_id: String!) {
+  todos(where: { user_id: { _eq: $user_id } }) {
+    title
+    description
+  }
+}

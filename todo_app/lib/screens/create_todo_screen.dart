@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ferry/ferry.dart';
+import 'package:get_it/get_it.dart';
+import 'package:todo_app/graphql/__generated__/create_todo.req.gql.dart';
+import 'package:todo_app/library/secure_storage.dart';
+
+final client = GetIt.I<Client>();
 
 class CreateTodoScreen extends HookWidget {
   const CreateTodoScreen({super.key});
@@ -13,8 +19,16 @@ class CreateTodoScreen extends HookWidget {
     Future<void> createTodoAction() async {
       isLoading.value = true;
 
-      // TODO: TODO作成処理
-      await Future.delayed(const Duration(seconds: 2)); // 処理時間を偽装
+      try {
+        final userId = await read(ssUserId);
+        final req = GCreateTodoReq((b) => b
+          ..vars.user_id = userId
+          ..vars.title = title.value.text
+          ..vars.description = description.value.text);
+        await client.request(req).first;
+      } catch (e) {
+        print('Failed createTodoAction()');
+      }
 
       isLoading.value = false;
 
