@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:todo_app/library/secure_storage.dart';
+import 'package:todo_app/services/auth0.dart';
 import 'package:todo_app/screens/login_screen.dart';
 import 'package:todo_app/screens/loading_screen.dart';
 import 'package:todo_app/screens/home_screen.dart';
@@ -21,18 +23,47 @@ class TodoApp extends HookWidget {
     Future<void> loginAction() async {
       loginStatus.value = LoginStatus.loggingIn;
 
-      // TODO: ログイン処理
-      await Future.delayed(const Duration(seconds: 2)); // 処理時間を偽装
+      try {
+        final response = await loginRequest();
+        final idToken = parseIdToken(response!.idToken);
 
-      loginStatus.value = LoginStatus.loggedIn;
+        write(ssUserId, idToken['sub']);
+        write(ssRefreshToken, response.refreshToken);
+
+        loginStatus.value = LoginStatus.loggedIn;
+      } catch (e) {
+        loginStatus.value = LoginStatus.loggedOut;
+      }
 
       print('Runned loginAction()');
+    }
+
+    Future<void> tokenAction() async {
+      final storedRefreshToken = await read(ssRefreshToken);
+      if (storedRefreshToken == null) return;
+
+      loginStatus.value = LoginStatus.loggingIn;
+
+      try {
+        final response = await tokenRequest(storedRefreshToken);
+        final idToken = parseIdToken(response!.idToken);
+
+        write(ssUserId, idToken['sub']);
+        write(ssIdToken, response.idToken);
+
+        loginStatus.value = LoginStatus.loggedIn;
+      } catch (e) {
+        loginStatus.value = LoginStatus.loggedOut;
+      }
+
+      print('Runned tokenAction()');
     }
 
     void logoutAction() {
       loginStatus.value = LoginStatus.loggingOut;
 
-      // TODO: ログアウト処理
+      delete(ssUserId);
+      delete(ssRefreshToken);
 
       loginStatus.value = LoginStatus.loggedOut;
 
@@ -41,7 +72,7 @@ class TodoApp extends HookWidget {
 
     void initAction() async {
       try {
-        await loginAction();
+        await tokenAction();
       } catch (e) {
         logoutAction();
       }
