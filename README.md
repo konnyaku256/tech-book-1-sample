@@ -7,8 +7,7 @@
 
 ## お問い合わせ
 
-書籍に関するご意見やご質問、お問い合わせは、[著者の X（旧 Twitter）](https://x.com/konnyaku256)よりお気軽にご連絡
-ください。
+書籍に関するご意見やご質問、お問い合わせは、[著者の X（旧 Twitter）](https://x.com/konnyaku256)よりお気軽にご連絡ください。
 
 また、本リポジトリに関する問題は [Issues](https://github.com/konnyaku256/tech-book-1/issues) からご起票ください。
 
